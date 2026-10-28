@@ -25,14 +25,26 @@ openturns-agent-skills/
 
 The setup script creates a symbolic link from the `skills/` directory in this repository to your CLI assistant's global configuration directory.
 
+### Manual installation
+
+To use these skills in any OpenTURNS project, create a symbolic link named skills inside the project's .agents folder that points to the skills/ directory of this repository.
+
+```
+cd /path/to/uq_project_that_uses_OpenTURNS
+mkdir -p .agents
+cd .agents
+ln -s /path/to/openturns-agent-skills/skills skills
+```
+
+This creates a symbolic link the uq_project_that_uses_OpenTURNS/.agents/skills to the openturns-agent-skills/skills directory.
+
 ### Linux / macOS
 
 ```bash
-git clone [https://github.com/votre-compte/openturns-agent-skills.git](https://github.com/votre-compte/openturns-agent-skills.git)
+git clone https://github.com/votre-compte/openturns-agent-skills.git
 cd openturns-agent-skills
 chmod +x install.sh
 ./install.sh
-
 ```
 
 ### Windows (PowerShell)
@@ -40,10 +52,19 @@ chmod +x install.sh
 Open PowerShell and run:
 
 ```powershell
-git clone [https://github.com/votre-compte/openturns-agent-skills.git](https://github.com/votre-compte/openturns-agent-skills.git)
+git clone https://github.com/votre-compte/openturns-agent-skills.git
 cd openturns-agent-skills
 .\install.ps1
 
+```
+
+### Global installation
+
+To link your openturns-agent-skills repository directly to the global configuration directory of Gemini CLI, update the commands as follows:
+
+```bash
+mkdir -p ~/.config/gemini
+ln -s ~/path/to/openturns-agent-skills/skills ~/.config/gemini/skills
 ```
 
 ---
