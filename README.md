@@ -46,6 +46,7 @@ openturns-agent-skills/
 │   └── ...
 ├── install.sh
 ├── install.ps1
+├── CHANGELOG.md
 └── README.md
 ```
 
