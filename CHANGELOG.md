@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-26
+
 ### Added
 - **`openturns-graphics`**: Created a comprehensive OpenTURNS graphics skill:
   - Basic drawables: `ot.Graph`, `ot.Curve`, `ot.Cloud`, and `ot.Polygon.FillBetween` for shading areas under curves.
