@@ -141,13 +141,19 @@ OpenTURNS includes native graphing capabilities using `ot.Graph` and `openturns.
 
 * **Basic Graph:** `graph = ot.Graph(title, x_title, y_title, show_axes_bool)`
 * **Drawables:** `ot.Curve(sample_x, sample_y)`, `ot.Cloud(sample_x, sample_y)`
-* **Visual Tests:** `ot.VisualTest.DrawPairs(sample)`, `ot.VisualTest.DrawPairsMarginals(sample, distribution)`, `ot.VisualTest.DrawParallelCoordinates(...)`
+* **Visual Tests:**
+  * Pairs plot: `ot.VisualTest.DrawPairs(sample)` (returns `ot.GridLayout` of $(d-1)\times(d-1)$ marginal projections)
+  * Pairs with distribution: `ot.VisualTest.DrawPairsMarginals(sample, distribution)` (PDFs on diagonal, isolines off-diagonal)
+  * Input/output pairs: `ot.VisualTest.DrawPairsXY(sampleX, sampleY)` (marginals of $Y$ vs marginals of $X$)
+  * Parallel coordinates: `ot.VisualTest.DrawParallelCoordinates(input_sample, output_sample, min_val, max_val, color)`
 * **Color and Legend Customization:**
   * Palette: `graph.setColors(ot.Drawable().BuildDefaultPalette(nb_graphs))`
   * Legend placement: `graph.setLegendCorner((1.0, 1.0))`, `graph.setLegendPosition("upper left")`
 * **Rendering with `otv.View`:**
   * Display: `view = otv.View(graph, figure_kw={"figsize": (4.0, 3.0)})`
   * Legend fine-tuning: `otv.View(graph, legend_kw={"bbox_to_anchor": (1.0, 1.0), "loc": "upper left"})`
+  * Display all open figures: `otv.View.ShowAll()`
+  * Fix GridLayout / DrawPairs overlap: `view.getFigure().subplots_adjust(hspace=0.4, wspace=0.35)`
   * Save figure: `view.getFigure().savefig("filename.pdf", bbox_inches="tight")`
 
 ### 2D Contour Plots

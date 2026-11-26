@@ -1,6 +1,6 @@
 ---
 name: openturns-graphics
-description: Create, customize, and export OpenTURNS graphics using ot.Graph, ot.Curve, ot.Cloud, pairs plots (DrawPairs, DrawPairsMarginals), parallel coordinates (DrawParallelCoordinates), GridLayout, and openturns.viewer.View. Use when creating OpenTURNS plots, customizing palettes and colors, adjusting figure size, bounding box or legend positions, resolving subplot overlaps with subplots_adjust (hspace, wspace), or saving figures to PDF/PNG.
+description: Create, customize, and export OpenTURNS graphics using ot.Graph, ot.Curve, ot.Cloud, pairs plots (DrawPairs, DrawPairsMarginals, DrawPairsXY), parallel coordinates (DrawParallelCoordinates), GridLayout, and openturns.viewer.View. Use when creating OpenTURNS plots, customizing palettes and colors, adjusting figure size, bounding box or legend positions, resolving subplot overlaps with subplots_adjust (hspace, wspace), or saving figures to PDF/PNG.
 ---
 
 # OpenTURNS Graphics Guide
@@ -15,12 +15,14 @@ Comprehensive guide for creating, styling, arranging, and exporting plots in Ope
 | **Create graph** | `ot.Graph(title, x_title, y_title, show_axes_bool)` |
 | **Curve (line plot)** | `ot.Curve(sample_x, sample_y)` |
 | **Cloud (scatter plot)** | `ot.Cloud(sample_x, sample_y)` |
-| **Pairs plot** | `ot.VisualTest.DrawPairs(sample)` |
+| **Pairs plot** | `ot.VisualTest.DrawPairs(sample)` *(returns `ot.GridLayout`)* |
 | **Pairs with distribution** | `ot.VisualTest.DrawPairsMarginals(sample, distribution)` |
+| **Pairs input/output** | `ot.VisualTest.DrawPairsXY(sampleX, sampleY)` *(returns `ot.GridLayout`)* |
 | **Parallel coordinates** | `ot.VisualTest.DrawParallelCoordinates(input_sample, output_sample, min_val, max_val, color)` |
 | **Set color palette** | `graph.setColors(ot.Drawable().BuildDefaultPalette(n_graphs))` |
 | **Set figure size** | `otv.View(graph, figure_kw={"figsize": (4.0, 3.0)})` |
 | **Move / configure legend** | `otv.View(graph, legend_kw={"bbox_to_anchor": (1.0, 1.0), "loc": "upper left"})` |
+| **Display all windows** | `otv.View.ShowAll()` |
 | **Save figure** | `view.getFigure().savefig("filename.pdf", bbox_inches="tight")` |
 | **Fix GridLayout overlaps** | `view.getFigure().subplots_adjust(hspace=0.4, wspace=0.4)` |
 
@@ -67,15 +69,27 @@ graph.setColors(palette)
 OpenTURNS provides high-level diagnostic and multi-variable plots under `ot.VisualTest`.
 
 ### Pairs Plot (`DrawPairs`)
-Displays a matrix of 2D scatter plots for all pairwise combinations of marginals:
+Draws each pair of 2-d marginal projection clouds for a multidimensional sample.
+Returns an `ot.GridLayout` of dimension $(d-1) \times (d-1)$:
 
 ```python
-sample = ot.Normal(3).getSample(100)
-sample.setDescription(["X1", "X2", "X3"])
+import openturns as ot
+import openturns.viewer as otv
 
-# Generate pairwise scatter matrix
-pairs_graph = ot.VisualTest.DrawPairs(sample)
+# Generate correlated 3D normal sample
+R = ot.CorrelationMatrix(3)
+for i in range(1, 3):
+    R[i, i - 1] = -0.4
+distribution = ot.Normal([0.0] * 3, [5.0] * 3, R)
+sample = distribution.getSample(200)
+sample.setDescription(["X0", "X1", "X2"])
+
+# Draw 2D pairwise projections (returns ot.GridLayout)
+grid = ot.VisualTest.DrawPairs(sample)
+view = otv.View(grid, figure_kw={"figsize": (6.0, 6.0)})
 ```
+
+*Note on styling*: Point style defaults to `Drawable-DefaultPointStyle` in `ot.ResourceMap`, and the color defaults to the first color in the default palette.
 
 ### Pairs Plot with Distribution (`DrawPairsMarginals`)
 Overlays theoretical marginal PDFs on the diagonal and 2D iso-contours on the off-diagonal scatter plots:
@@ -83,6 +97,19 @@ Overlays theoretical marginal PDFs on the diagonal and 2D iso-contours on the of
 ```python
 distribution = ot.Normal(3)
 pairs_marginals_graph = ot.VisualTest.DrawPairsMarginals(sample, distribution)
+```
+
+### Input/Output Pairs Plot (`DrawPairsXY`)
+Draws 2-d projections relating marginals of an output sample $Y$ (in rows) with respect to marginals of an input sample $X$ (in columns). Useful for visualizing relationships between model inputs and outputs:
+
+```python
+# Model: Y = [X0 + X1, X0 - X2]
+model = ot.SymbolicFunction(["X0", "X1", "X2"], ["X0 + X1", "X0 - X2"])
+output_sample = model(sample)
+output_sample.setDescription(["Y0", "Y1"])
+
+grid_xy = ot.VisualTest.DrawPairsXY(sample, output_sample)
+view_xy = otv.View(grid_xy, figure_kw={"figsize": (8.0, 5.0)})
 ```
 
 ### Parallel Coordinates (`DrawParallelCoordinates`)
@@ -106,7 +133,7 @@ par_graph = ot.VisualTest.DrawParallelCoordinates(
 
 ## 3. Customizing the Figure with `openturns.viewer.View`
 
-`otv.View` bridges OpenTURNS `Graph` objects to Matplotlib `Figure` and `Axes` instances.
+`otv.View` bridges OpenTURNS `Graph` and `GridLayout` objects to Matplotlib `Figure` and `Axes` instances.
 
 ### Sizing and Legends
 
@@ -121,23 +148,42 @@ view = otv.View(
 )
 ```
 
+### Displaying All Windows
+In interactive Python scripts or notebooks, show all open figures simultaneously:
+```python
+otv.View.ShowAll()
+```
+
 ### Accessing Matplotlib Primitives
 
 ```python
 fig = view.getFigure()
 axes = view.getAxes()
 
-# Directly adjust matplotlib properties if needed
+# Directly adjust matplotlib properties on axes
 axes[0].grid(True, linestyle=":", alpha=0.6)
 ```
 
 ---
 
-## 4. Resolving Overlaps in `GridLayout` and Multi-Plots
+## 4. Multi-Plot Layouts (`GridLayout`) and Overlap Management
 
-When using `ot.GridLayout` or multi-panel visual tests like `DrawPairs`, subplot labels and titles may collide or overlap due to default tight margins.
+An `ot.GridLayout(nb_rows, nb_cols)` arranges multiple sub-graphs into a grid. Both `ot.GridLayout` and visual test matrices (`DrawPairs`, `DrawPairsXY`) often suffer from overlapping titles, axis labels, or tick marks due to compact default margins.
 
-To fix this, increase the spacing between subplots using `matplotlib.pyplot.subplots_adjust` (or `fig.subplots_adjust`) by adjusting:
+### Inspecting and Modifying Sub-Graphs in a Grid
+```python
+# Check grid dimensions
+rows = grid.getNbRows()
+cols = grid.getNbColumns()
+
+# Access and customize a specific sub-graph at row i, column j
+sub_graph = grid.getGraph(0, 0)
+sub_graph.setTitle("Subplot Title")
+grid.setGraph(0, 0, sub_graph)
+```
+
+### Resolving Subplot Overlaps with `subplots_adjust`
+To prevent labels from colliding, adjust the horizontal margin (`wspace`) and vertical margin (`hspace`) via `matplotlib.pyplot.subplots_adjust` or `fig.subplots_adjust`:
 - **`wspace`**: horizontal margin between subplots (fraction of average axis width).
 - **`hspace`**: vertical margin between subplots (fraction of average axis height).
 
@@ -146,18 +192,11 @@ import matplotlib.pyplot as plt
 import openturns as ot
 import openturns.viewer as otv
 
-# Example with GridLayout
-grid = ot.GridLayout(2, 2)
-grid.setGraph(0, 0, ot.Normal().drawPDF())
-grid.setGraph(0, 1, ot.Uniform().drawPDF())
-grid.setGraph(1, 0, ot.Exponential().drawPDF())
-grid.setGraph(1, 1, ot.LogNormal().drawPDF())
-
-# Render with View
+# Render GridLayout or DrawPairs
 view = otv.View(grid, figure_kw={"figsize": (8.0, 6.0)})
 fig = view.getFigure()
 
-# Increase margins to prevent overlapping titles and axis labels
+# Increase margins to eliminate overlap between adjacent subplots
 fig.subplots_adjust(hspace=0.4, wspace=0.35)
 ```
 

@@ -61,41 +61,49 @@ def demo_curve_and_cloud():
 
 # %%
 def demo_visual_tests():
-    """Demonstrate DrawPairs, DrawPairsMarginals, and DrawParallelCoordinates."""
+    """Demonstrate DrawPairs, DrawPairsMarginals, DrawPairsXY, and DrawParallelCoordinates."""
     ot.RandomGenerator.SetSeed(42)
 
-    # Sample from 3D correlated normal distribution
-    corr = ot.CorrelationMatrix(3)
-    corr[0, 1] = 0.6
-    corr[1, 2] = -0.4
-    copula = ot.NormalCopula(corr)
-    distribution = ot.JointDistribution([ot.Normal(), ot.Normal(), ot.Normal()], copula)
-    sample = distribution.getSample(150)
-    sample.setDescription(["X1", "X2", "X3"])
+    # 1. Sample from 3D correlated normal distribution (as in plot_visualize_pairs)
+    R = ot.CorrelationMatrix(3)
+    for i in range(1, 3):
+        R[i, i - 1] = -0.4
+    distribution = ot.Normal([0.0] * 3, [5.0] * 3, R)
+    sample = distribution.getSample(200)
+    sample.setDescription(["X0", "X1", "X2"])
 
-    # 1. Pairs plot
-    pairs_graph = ot.VisualTest.DrawPairs(sample)
-    v_pairs = otv.View(pairs_graph, figure_kw={"figsize": (6.0, 6.0)})
+    # 2. Pairs plot (returns ot.GridLayout of 2D marginal projections)
+    pairs_grid = ot.VisualTest.DrawPairs(sample)
+    v_pairs = otv.View(pairs_grid, figure_kw={"figsize": (6.0, 6.0)})
+    # Adjust spacing to avoid label collisions in pairs matrix
+    v_pairs.getFigure().subplots_adjust(hspace=0.35, wspace=0.35)
     v_pairs.getFigure().savefig("demo_pairs.png", bbox_inches="tight")
     v_pairs.close()
 
-    # 2. Pairs with theoretical distribution overlay
-    pairs_marg_graph = ot.VisualTest.DrawPairsMarginals(sample, distribution)
-    v_pairs_marg = otv.View(pairs_marg_graph, figure_kw={"figsize": (6.0, 6.0)})
+    # 3. Pairs with theoretical distribution overlay (PDFs and isolines)
+    pairs_marg_grid = ot.VisualTest.DrawPairsMarginals(sample, distribution)
+    v_pairs_marg = otv.View(pairs_marg_grid, figure_kw={"figsize": (6.0, 6.0)})
+    v_pairs_marg.getFigure().subplots_adjust(hspace=0.35, wspace=0.35)
     v_pairs_marg.getFigure().savefig("demo_pairs_marginals.png", bbox_inches="tight")
     v_pairs_marg.close()
 
-    # 3. Parallel coordinates with target selection
-    # Y = X1 + 2*X2 - X3
-    model = ot.SymbolicFunction(["X1", "X2", "X3"], ["X1 + 2.0 * X2 - X3"])
+    # 4. Input/Output Pairs plot (DrawPairsXY)
+    model = ot.SymbolicFunction(["X0", "X1", "X2"], ["X0 + 2.0 * X1 - X2", "X0 * X2"])
     output_sample = model(sample)
-    output_sample.setDescription(["Y"])
+    output_sample.setDescription(["Y0", "Y1"])
 
-    # Highlight lines where Y in [1.0, 3.0] in red (quantileScale=False)
+    pairs_xy_grid = ot.VisualTest.DrawPairsXY(sample, output_sample)
+    v_pairs_xy = otv.View(pairs_xy_grid, figure_kw={"figsize": (8.0, 5.0)})
+    v_pairs_xy.getFigure().subplots_adjust(hspace=0.35, wspace=0.35)
+    v_pairs_xy.getFigure().savefig("demo_pairs_xy.png", bbox_inches="tight")
+    v_pairs_xy.close()
+
+    # 5. Parallel coordinates with target selection
+    # Highlight lines where Y0 in [1.0, 5.0] in red (quantileScale=False)
     par_graph = ot.VisualTest.DrawParallelCoordinates(
-        sample, output_sample, 1.0, 3.0, "red", False
+        sample, output_sample.getMarginal(0), 1.0, 5.0, "red", False
     )
-    v_par = otv.View(par_graph, figure_kw={"figsize": (6.0, 3.5)})
+    v_par = otv.View(par_graph, figure_kw={"figsize": (6.5, 3.5)})
     v_par.getFigure().savefig("demo_parallel_coordinates.png", bbox_inches="tight")
     v_par.close()
 
