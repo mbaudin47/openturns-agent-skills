@@ -130,8 +130,81 @@ def demo_grid_layout_with_spacing():
 
 
 # %%
+def demo_contour_plots():
+    """Demonstrate 2D contours: filled areas, iso-lines, colormaps, labels, and norm scaling."""
+    # 1. 2D analytical model
+    f = ot.SymbolicFunction(["x", "y"], ["exp(-sin(cos(y)^2 * x^2 + sin(x)^2 * y^2))"])
+    graph = f.draw([-4.0, -4.0], [4.0, 4.0], [60, 60])
+    graph.setTitle("Complex 2D Function: Filled Contour & Labeled Iso-Lines")
+
+    # 2. Configure filled background
+    filled = graph.getDrawable(0).getImplementation()
+    filled.setIsFilled(True)
+    filled.setColorMap("viridis")
+    filled.setColorBarPosition("right")
+    graph.setDrawable(0, filled)
+
+    # 3. Superpose crisp black level lines with inlined labels
+    lines = graph.getDrawable(0).getImplementation()
+    lines.setIsFilled(False)
+    lines.setColor("black")
+    lines.setColorBarPosition("")  # Avoid duplicate colorbar
+    lines.setLineWidth(1.2)
+    lines.setDrawLabels(True)
+    graph.add(lines)
+
+    v_contour = otv.View(graph, figure_kw={"figsize": (6.5, 5.0)})
+    v_contour.save("demo_contour_superposed.png", dpi=150)
+    v_contour.close()
+
+    # 4. Joint Distribution PDF with Log Color Normalization
+    corr = ot.CorrelationMatrix(2)
+    corr[0, 1] = 0.5
+    dist_2d = ot.JointDistribution([ot.Normal(), ot.Normal()], ot.NormalCopula(corr))
+    graph_dist = dist_2d.drawPDF([-3.5, -3.5], [3.5, 3.5])
+    graph_dist.setTitle("Bivariate Normal PDF with Log Norm")
+
+    c_dist = graph_dist.getDrawable(0).getImplementation()
+    c_dist.setIsFilled(True)
+    c_dist.setColorMap("plasma")
+    c_dist.setColorMapNorm("log")
+    c_dist.setColorBarPosition("right")
+    graph_dist.setDrawable(0, c_dist)
+
+    v_dist = otv.View(graph_dist, figure_kw={"figsize": (6.0, 4.5)})
+    v_dist.save("demo_contour_lognorm.png", dpi=150)
+    v_dist.close()
+
+
+# %%
+def demo_fill_between():
+    """Demonstrate shading area under a PDF curve using ot.Polygon.FillBetween."""
+    dist = ot.Normal()
+    graph = dist.drawPDF()
+
+    # Shaded interval [1.0, 2.5]
+    n_pts = 60
+    grid = ot.RegularGrid(1.0, 1.5 / (n_pts - 1), n_pts)
+    x = grid.getVertices()
+    y = dist.computePDF(x)
+
+    v_low = [0.0] * n_pts
+    v_up = [y[i, 0] for i in range(n_pts)]
+    poly = ot.Polygon.FillBetween(x.asPoint(), v_low, v_up)
+    poly.setColor("skyblue")
+    poly.setLegend("Tail Event")
+
+    graph.add(poly)
+    view = otv.View(graph, figure_kw={"figsize": (6.0, 3.5)})
+    view.save("demo_fill_between.png", dpi=150)
+    view.close()
+
+
+# %%
 if __name__ == "__main__":
     demo_curve_and_cloud()
+    demo_contour_plots()
+    demo_fill_between()
     demo_visual_tests()
     demo_grid_layout_with_spacing()
     print("All OpenTURNS graphics demos executed and saved successfully.")

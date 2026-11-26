@@ -156,16 +156,26 @@ OpenTURNS includes native graphing capabilities using `ot.Graph` and `openturns.
   * Fix GridLayout / DrawPairs overlap: `view.getFigure().subplots_adjust(hspace=0.4, wspace=0.35)`
   * Save figure: `view.getFigure().savefig("filename.pdf", bbox_inches="tight")`
 
-### 2D Contour Plots
+### 2D Contour Plots and Shaded Areas
 
-* **Generation:** Call `draw()` on an `ot.Function` with 2 inputs.
+* **Generation:**
+  * From 2D Function: `graph = f.draw([xmin, ymin], [xmax, ymax], [nx, ny])`
+  * From 2D Distribution: `graph = distribution.drawPDF([xmin, ymin], [xmax, ymax])`
+  * From Grid Data: `contour = ot.Contour(x, y, data)`
 * **Extraction:** Retrieve contour drawable via `graph.getDrawable(0)` and access methods through `drawable.getImplementation()`.
-* **Levels Configuration:**
+* **Filled Contours & Iso-lines:**
+  * Toggle fill: `contour_impl.setIsFilled(True)` vs `False` (level lines)
+  * Superposition: Set filled contour as background drawable (`graph.setDrawable(0, filled)`), and add black line contour with `contour_impl.setDrawLabels(True)` as foreground (`graph.add(lines)`).
+* **Levels Configuration & Labels:**
   * Global setting: `ot.ResourceMap.SetAsUnsignedInteger("Contour-DefaultLevelsNumber", n)`
-  * Local setting: `contour_impl.buildDefaultLevels()`, query via `contour_impl.getLevels()`
-* **Steep Gradients:** Apply rank-based normalization for improved color variation: `contour_impl.setColorMapNorm("rank")`.
-* **Filled Areas:** Enable filled contour regions with `contour_impl.setIsFilled(True)`.
-* **Coloring:** Set monochrome with `contour_impl.setColor("blue")` or pass custom palettes to `contour_kw` in `otv.View`.
+  * Local setting: `contour_impl.buildDefaultLevels(n)`, query via `contour_impl.getLevels()`
+  * Custom labels: `contour_impl.setDrawLabels(True)`, `contour_impl.setLabels(["{:.2e}".format(l) for l in levels])`
+* **Colormaps, Normalization & Scaling:**
+  * Colormaps: `contour_impl.setColorMap("inferno")`, `contour_impl.setColorBarPosition("right")` (or `""` to hide)
+  * Normalization: `contour_impl.setColorMapNorm("log")` (multiscale spans) or `contour_impl.setColorMapNorm("rank")` (rank-based quantile scaling for steep gradients)
+  * Hatches & alpha: `contour_impl.setAlpha(0.3)`, `contour_impl.setHatches(["/", "\\", "+", "*"])`
+* **Shading Under 1D Curve:**
+  * Fill probability/tail areas: `poly = ot.Polygon.FillBetween(x.asPoint(), v_low, v_up)`; `graph.add(poly)`
 
 ## Pitfalls and Gotchas
 
