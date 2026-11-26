@@ -3,6 +3,8 @@
 """
 Kriging / Gaussian Process Regression surrogate modeling with OpenTURNS.
 
+Target Version: OpenTURNS 1.27
+
 This script demonstrates:
 1. Training data generation from a non-linear physical model.
 2. Building trend basis and spatial covariance model (Matérn kernel).

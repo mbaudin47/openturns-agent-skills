@@ -3,6 +3,8 @@
 """
 Structural reliability and rare event probability estimation with OpenTURNS.
 
+Target Version: OpenTURNS 1.27
+
 This script demonstrates:
 1. Setting up a limit state function and failure event via ThresholdEvent.
 2. Estimating failure probability using FORM (First Order Reliability Method).

@@ -3,6 +3,8 @@
 """
 Sensitivity analysis using OpenTURNS with the Ishigami test function.
 
+Target Version: OpenTURNS 1.27
+
 This script demonstrates:
 1. Design of experiments with SobolIndicesExperiment.
 2. Estimation of first and total order Sobol' indices using Saltelli and Martinez algorithms.

@@ -1,9 +1,12 @@
 ---
 name: openturns-python-guide
-description: Best practices, essential classes, syntax reference, and workflow guidelines for OpenTURNS in Python. Use when writing Python code with OpenTURNS, working with ot.Sample or ot.Point, defining models, building metamodels, running uncertainty quantification, sensitivity analysis, calibration, or plotting native OpenTURNS graphs.
+description: Best practices, essential classes, syntax reference, and workflow guidelines for OpenTURNS 1.27 in Python. Use when writing Python code with OpenTURNS, working with ot.Sample or ot.Point, defining models, building metamodels, running uncertainty quantification, sensitivity analysis, calibration, or plotting native OpenTURNS graphs.
 ---
 
 # OpenTURNS Python Guide
+
+> **Target Version:** OpenTURNS **1.27**  
+> Code generated, reviewed, or executed using this guide must adhere to the OpenTURNS 1.27 API.
 
 Guide to idiomatic and high-performance usage of the OpenTURNS Python library, covering fundamental data structures, model definitions, uncertainty quantification (ABC methodology), metamodeling, calibration, and native visualization.
 
@@ -184,3 +187,4 @@ OpenTURNS includes native graphing capabilities using `ot.Graph` and `openturns.
 * **Use Correct Parameterization Constructors:** Avoid manually solving moment equations for distributions when built-in parameterization classes exist (e.g. `ot.LogNormalMuSigma`).
 * **Use `Sample.ImportFromCSVFile` for Datasets:** When loading structured tables into OpenTURNS, use `ot.Sample.ImportFromCSVFile()` to preserve column headers.
 * **Legend Formatting:** Use `setLegendCorner()` or `legend_kw` in `otv.View` to prevent legends from obscuring plot data.
+* **Target OpenTURNS 1.27 Compatibility:** Always adhere to OpenTURNS 1.27 compatible APIs (e.g. use `graph.setBoundingBox(ot.Interval(...))` for setting axis limits, and avoid unreleased 1.28+ features without runtime fallback checks).

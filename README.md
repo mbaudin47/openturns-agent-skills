@@ -1,6 +1,16 @@
 # openturns-agent-skills
 
-A collection of custom skills for CLI assistants (Gemini CLI, etc.) focused on **OpenTURNS**, Uncertainty Quantification (UQ), and scientific computing.
+[![OpenTURNS Version](https://img.shields.io/badge/OpenTURNS-1.27-blue.svg)](https://openturns.github.io/)
+
+A collection of custom skills for CLI assistants (Gemini CLI, etc.) focused on **OpenTURNS (target version: 1.27)**, Uncertainty Quantification (UQ), and scientific computing.
+
+---
+
+## 🎯 Target Version
+
+All skills and companion scripts in this repository are developed, tested, and validated against **OpenTURNS 1.27**.
+
+When newer features or syntax changes are discussed (such as upcoming OpenTURNS 1.28+ APIs), skills provide version-safe fallback patterns to guarantee execution under OpenTURNS 1.27.
 
 ---
 

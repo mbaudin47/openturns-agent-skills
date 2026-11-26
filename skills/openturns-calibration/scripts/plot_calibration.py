@@ -3,6 +3,8 @@
 """
 Model calibration and parameter estimation with OpenTURNS.
 
+Target Version: OpenTURNS 1.27
+
 This script demonstrates:
 1. Setting up a parametric physical model via ParametricFunction.
 2. Generating synthetic experimental observations with measurement noise.

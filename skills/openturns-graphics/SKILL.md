@@ -5,6 +5,9 @@ description: Create, customize, and export OpenTURNS graphics including Curve, C
 
 # OpenTURNS Graphics and Contour Guide
 
+> **Target Version:** OpenTURNS **1.27**  
+> Visualizations and syntax in this guide are validated against OpenTURNS 1.27.
+
 Comprehensive guide for creating, styling, arranging, and exporting plots in OpenTURNS using `ot.Graph`, basic Drawables (`Curve`, `Cloud`, `Polygon`), 2D `Contour` plots and level lines, statistical visual tests, and `openturns.viewer.View`.
 
 ## Quick Reference

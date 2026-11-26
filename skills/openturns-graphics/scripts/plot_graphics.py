@@ -3,6 +3,8 @@
 """
 OpenTURNS Graphics and Visualization Guide.
 
+Target Version: OpenTURNS 1.27
+
 This script demonstrates:
 1. Creating Graph containers and adding Curve and Cloud drawables.
 2. Styling palettes, line styles, point styles, and legends.
