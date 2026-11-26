@@ -1,9 +1,12 @@
 ---
 name: openturns-python-guide
-description: Best practices, essential classes, syntax reference, and workflow guidelines for OpenTURNS in Python. Use when writing Python code with OpenTURNS, working with ot.Sample or ot.Point, defining models, building metamodels, running uncertainty quantification, sensitivity analysis, calibration, or plotting native OpenTURNS graphs.
+description: Best practices, essential classes, syntax reference, and workflow guidelines for OpenTURNS 1.27 in Python. Use when writing Python code with OpenTURNS, working with ot.Sample or ot.Point, defining models, building metamodels, running uncertainty quantification, sensitivity analysis, calibration, or plotting native OpenTURNS graphs.
 ---
 
 # OpenTURNS Python Guide
+
+> **Target Version:** OpenTURNS **1.27**  
+> Code generated, reviewed, or executed using this guide must adhere to the OpenTURNS 1.27 API.
 
 Guide to idiomatic and high-performance usage of the OpenTURNS Python library, covering fundamental data structures, model definitions, uncertainty quantification (ABC methodology), metamodeling, calibration, and native visualization.
 
@@ -141,25 +144,42 @@ OpenTURNS includes native graphing capabilities using `ot.Graph` and `openturns.
 
 * **Basic Graph:** `graph = ot.Graph(title, x_title, y_title, show_axes_bool)`
 * **Drawables:** `ot.Curve(sample_x, sample_y)`, `ot.Cloud(sample_x, sample_y)`
-* **Visual Tests:** `ot.VisualTest.DrawPairs(sample)`, `ot.VisualTest.DrawPairsMarginals(sample, distribution)`, `ot.VisualTest.DrawParallelCoordinates(...)`
+* **Visual Tests:**
+  * Pairs plot: `ot.VisualTest.DrawPairs(sample)` (returns `ot.GridLayout` of $(d-1)\times(d-1)$ marginal projections)
+  * Pairs with distribution: `ot.VisualTest.DrawPairsMarginals(sample, distribution)` (PDFs on diagonal, isolines off-diagonal)
+  * Input/output pairs: `ot.VisualTest.DrawPairsXY(sampleX, sampleY)` (marginals of $Y$ vs marginals of $X$)
+  * Parallel coordinates: `ot.VisualTest.DrawParallelCoordinates(input_sample, output_sample, min_val, max_val, color)`
 * **Color and Legend Customization:**
   * Palette: `graph.setColors(ot.Drawable().BuildDefaultPalette(nb_graphs))`
   * Legend placement: `graph.setLegendCorner((1.0, 1.0))`, `graph.setLegendPosition("upper left")`
 * **Rendering with `otv.View`:**
   * Display: `view = otv.View(graph, figure_kw={"figsize": (4.0, 3.0)})`
   * Legend fine-tuning: `otv.View(graph, legend_kw={"bbox_to_anchor": (1.0, 1.0), "loc": "upper left"})`
+  * Display all open figures: `otv.View.ShowAll()`
+  * Fix GridLayout / DrawPairs overlap: `view.getFigure().subplots_adjust(hspace=0.4, wspace=0.35)`
   * Save figure: `view.getFigure().savefig("filename.pdf", bbox_inches="tight")`
 
-### 2D Contour Plots
+### 2D Contour Plots and Shaded Areas
 
-* **Generation:** Call `draw()` on an `ot.Function` with 2 inputs.
+* **Generation:**
+  * From 2D Function: `graph = f.draw([xmin, ymin], [xmax, ymax], [nx, ny])`
+  * From 2D Distribution: `graph = distribution.drawPDF([xmin, ymin], [xmax, ymax])`
+  * From Grid Data: `contour = ot.Contour(x, y, data)`
+  * Multidimensional Cross Cuts: `grid = f.drawCrossCuts(center, xmin, xmax, pts, with_1d, is_filled, vmin, vmax)` (matrix of 2D/1D cuts with shared color scale across all pairs)
 * **Extraction:** Retrieve contour drawable via `graph.getDrawable(0)` and access methods through `drawable.getImplementation()`.
-* **Levels Configuration:**
+* **Filled Contours & Iso-lines:**
+  * Toggle fill: `contour_impl.setIsFilled(True)` vs `False` (level lines)
+  * Superposition: Set filled contour as background drawable (`graph.setDrawable(0, filled)`), and add black line contour with `contour_impl.setDrawLabels(True)` as foreground (`graph.add(lines)`).
+* **Levels Configuration & Labels:**
   * Global setting: `ot.ResourceMap.SetAsUnsignedInteger("Contour-DefaultLevelsNumber", n)`
-  * Local setting: `contour_impl.buildDefaultLevels()`, query via `contour_impl.getLevels()`
-* **Steep Gradients:** Apply rank-based normalization for improved color variation: `contour_impl.setColorMapNorm("rank")`.
-* **Filled Areas:** Enable filled contour regions with `contour_impl.setIsFilled(True)`.
-* **Coloring:** Set monochrome with `contour_impl.setColor("blue")` or pass custom palettes to `contour_kw` in `otv.View`.
+  * Local setting: `contour_impl.buildDefaultLevels(n)`, query via `contour_impl.getLevels()`
+  * Custom labels: `contour_impl.setDrawLabels(True)`, `contour_impl.setLabels(["{:.2e}".format(l) for l in levels])`
+* **Colormaps, Normalization & Scaling:**
+  * Colormaps: `contour_impl.setColorMap("inferno")`, `contour_impl.setColorBarPosition("right")` (or `""` to hide)
+  * Normalization: `contour_impl.setColorMapNorm("log")` (multiscale spans) or `contour_impl.setColorMapNorm("rank")` (rank-based quantile scaling for steep gradients)
+  * Hatches & alpha: `contour_impl.setAlpha(0.3)`, `contour_impl.setHatches(["/", "\\", "+", "*"])`
+* **Shading Under 1D Curve:**
+  * Fill probability/tail areas: `poly = ot.Polygon.FillBetween(x.asPoint(), v_low, v_up)`; `graph.add(poly)`
 
 ## Pitfalls and Gotchas
 
@@ -167,3 +187,4 @@ OpenTURNS includes native graphing capabilities using `ot.Graph` and `openturns.
 * **Use Correct Parameterization Constructors:** Avoid manually solving moment equations for distributions when built-in parameterization classes exist (e.g. `ot.LogNormalMuSigma`).
 * **Use `Sample.ImportFromCSVFile` for Datasets:** When loading structured tables into OpenTURNS, use `ot.Sample.ImportFromCSVFile()` to preserve column headers.
 * **Legend Formatting:** Use `setLegendCorner()` or `legend_kw` in `otv.View` to prevent legends from obscuring plot data.
+* **Target OpenTURNS 1.27 Compatibility:** Always adhere to OpenTURNS 1.27 compatible APIs (e.g. use `graph.setBoundingBox(ot.Interval(...))` for setting axis limits, and avoid unreleased 1.28+ features without runtime fallback checks).

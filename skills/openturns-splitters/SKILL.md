@@ -1,37 +1,37 @@
 ---
 name: openturns-splitters
-description: Utiliser les classes KFoldSplitter et LeaveOneOutSplitter d'OpenTURNS pour la validation croisée et le découpage d'échantillons en sous-ensembles d'entraînement et de test.
+description: Use OpenTURNS KFoldSplitter and LeaveOneOutSplitter classes for cross-validation and sample partitioning into training and test subsets.
 ---
 
-# Validation croisée avec KFoldSplitter et LeaveOneOutSplitter dans OpenTURNS
+# Cross-Validation with KFoldSplitter and LeaveOneOutSplitter in OpenTURNS
 
-Ce guide décrit l'utilisation des classes `KFoldSplitter` et `LeaveOneOutSplitter` du module `openturns` pour réaliser le découpage d'échantillons (`ot.Sample`) en sous-ensembles d'entraînement et de test dans le cadre d'une validation croisée.
+This guide describes how to use the `KFoldSplitter` and `LeaveOneOutSplitter` classes from the `openturns` module to partition samples (`ot.Sample`) into training and test subsets for cross-validation.
 
-## Principe général
+## General Principle
 
-Les classes héritant de la méthode de découpage d'OpenTURNS fournissent des itérateurs. À chaque itération de la boucle Python, l'itérateur renvoie un tuple `(indicesTrain, indicesTest)` sous la forme de deux objets `ot.Indices`. Ces objets permettent de découper directement un échantillon de données `ot.Sample` grâce à l'opérateur de crochet `sample[indices]`.
+Classes inheriting from the OpenTURNS splitting mechanism act as iterators. At each iteration in a Python loop, the iterator yields a tuple `(indicesTrain, indicesTest)` as two `ot.Indices` objects. These objects allow direct sample slicing on an `ot.Sample` using bracket notation `sample[indices]`.
 
 ---
 
 ## 1. KFoldSplitter
 
-La classe `ot.KFoldSplitter` divise un jeu de données de taille $N$ en $K$ plis (folds). Chaque pli est utilisé une fois comme jeu de test, tandis que les $K-1$ autres plis constituent le jeu d'entraînement.
+The `ot.KFoldSplitter` class partitions a dataset of size $N$ into $K$ folds. Each fold is used once as a test set, while the remaining $K-1$ folds constitute the training set.
 
-### Syntaxe et méthodes principales
-* **Constructeur :** `ot.KFoldSplitter(N, k)`
-  * `N` (int) : Taille de l'ensemble d'indices (généralement `sample.getSize()`).
-  * `k` (int) : Nombre de plis.
-* **Méthodes :**
-  * `setRandomize(randomize)` (bool) : Active ou désactive le mélange aléatoire des plis.
-  * `getSize()` : Renvoie le nombre de découpages générés (égal à $K$).
-  * `getN()` : Renvoie la taille $N$ de l'ensemble.
+### Syntax and Main Methods
+* **Constructor:** `ot.KFoldSplitter(N, k)`
+  * `N` (int): Total size of the index set (typically `sample.getSize()`).
+  * `k` (int): Number of folds.
+* **Methods:**
+  * `setRandomize(randomize)` (bool): Enable or disable random shuffling of folds.
+  * `getSize()`: Returns the number of splits generated (equal to $K$).
+  * `getN()`: Returns the sample size $N$.
 
-### Exemple basique
+### Basic Example
 
 ```python
 import openturns as ot
 
-# Création d'un échantillon
+# Generate a sample
 sample = ot.Normal().getSample(100)
 k = 5
 
@@ -40,33 +40,33 @@ splitter = ot.KFoldSplitter(sample.getSize(), k)
 for indicesTrain, indicesTest in splitter:
     sampleTrain = sample[indicesTrain]
     sampleTest = sample[indicesTest]
-    # Traitement sur les échantillons d'entraînement et de test
+    # Train and evaluate models on respective subsets
 ```
 
-### Calcul du score $R^2$ par validation croisée K-Fold
+### Computing $R^2$ Score via K-Fold Cross-Validation
 
 ```python
 import openturns as ot
 
 def compute_r2_kfold(x_sample, y_sample, model_builder_fn, k=5):
     """
-    Calcule le score R2 moyen par validation croisée K-Fold.
+    Compute mean R2 score via K-Fold cross-validation.
 
     Parameters
     ----------
     x_sample : ot.Sample
-        Variables d'entrée.
+        Input variables.
     y_sample : ot.Sample
-        Variables de sortie.
+        Output variables.
     model_builder_fn : callable
-        Fonction prenant (x_train, y_train) et retournant un ot.Function (métamodèle).
+        Function taking (x_train, y_train) and returning an ot.Function (surrogate model).
     k : int
-        Nombre de plis.
+        Number of folds.
 
     Returns
     -------
     ot.Point
-        Score R2 moyen pour chaque dimension de sortie.
+        Mean R2 score across all output dimensions.
     """
     n = x_sample.getSize()
     splitter = ot.KFoldSplitter(n, k)
@@ -89,16 +89,16 @@ def compute_r2_kfold(x_sample, y_sample, model_builder_fn, k=5):
 
 ## 2. LeaveOneOutSplitter
 
-La classe `ot.LeaveOneOutSplitter` génère $N$ découpages. À chaque étape, une seule observation est conservée pour le test, et les $N-1$ autres observations servent à l'entraînement.
+The `ot.LeaveOneOutSplitter` class generates $N$ splits. At each step, a single observation is held out for testing, while the remaining $N-1$ observations are used for training.
 
-### Syntaxe et méthodes principales
-* **Constructeur :** `ot.LeaveOneOutSplitter(N)`
-  * `N` (int) : Taille de l'ensemble d'indices (`sample.getSize()`).
-* **Méthodes :**
-  * `getSize()` : Renvoie le nombre de jeux générés (égal à $N$).
-  * `getN()` : Renvoie la taille $N$.
+### Syntax and Main Methods
+* **Constructor:** `ot.LeaveOneOutSplitter(N)`
+  * `N` (int): Size of the dataset (`sample.getSize()`).
+* **Methods:**
+  * `getSize()`: Returns the number of generated splits (equal to $N$).
+  * `getN()`: Returns the dataset size $N$.
 
-### Exemple basique
+### Basic Example
 
 ```python
 import openturns as ot
@@ -108,17 +108,17 @@ splitter = ot.LeaveOneOutSplitter(sample.getSize())
 
 for indicesTrain, indicesTest in splitter:
     sampleTrain = sample[indicesTrain]
-    sampleTest = sample[indicesTest]  # Échantillon de taille 1
+    sampleTest = sample[indicesTest]  # Sample of size 1
 ```
 
-### Calcul de l'erreur quadratique moyenne Leave-One-Out (MSE LOO)
+### Computing Leave-One-Out Mean Squared Error (LOO MSE)
 
 ```python
 import openturns as ot
 
 def compute_mse_loo(x_sample, y_sample, model_builder_fn):
     """
-    Calcule l'erreur quadratique moyenne Leave-One-Out (MSE LOO).
+    Compute Leave-One-Out Mean Squared Error (LOO MSE).
     """
     n = x_sample.getSize()
     splitter = ot.LeaveOneOutSplitter(n)
@@ -137,8 +137,8 @@ def compute_mse_loo(x_sample, y_sample, model_builder_fn):
 
 ---
 
-## Recommandations d'utilisation
+## Usage Guidelines & Best Practices
 
-1. **Reproductibilité :** Pour `KFoldSplitter`, l'option de mélange aléatoire dépend par défaut de la clé `KFoldSplitter-Randomize` dans `ot.ResourceMap`. Il convient de fixer la graine du générateur via `ot.RandomGenerator.SetSeed(...)` pour assurer la répétabilité des résultats.
-2. **Indexation directe :** L'extraction des sous-échantillons à partir des objets `ot.Indices` s'effectue directement avec la syntaxe `sample[indices]`, sans nécessiter de conversion intermédiaire en liste Python.
-3. **Optimisation pour les moindres carrés :** Lorsque le modèle est une régression par moindres carrés (par exemple un polynôme du chaos), l'évaluation numérique brute répétée par `LeaveOneOutSplitter` peut être avantageusement remplacée par la formule analytique basée sur la diagonale de la matrice chapeau (`lsqMethod.getHDiag()` sur un objet `ot.QRMethod`).
+1. **Reproducibility:** For `KFoldSplitter`, random fold shuffling depends on the `KFoldSplitter-Randomize` key in `ot.ResourceMap`. Set the global random seed via `ot.RandomGenerator.SetSeed(...)` to guarantee repeatable fold splits.
+2. **Direct Indexing:** Subsamples are extracted directly using bracket notation `sample[indices]` on `ot.Indices`, with no need for conversion to Python lists.
+3. **Analytical Shortcut for Least Squares:** When the model is a linear or polynomial chaos regression, repetitive numerical evaluations via `LeaveOneOutSplitter` can be evaluated analytically in $O(1)$ time using the hat matrix diagonal (`lsqMethod.getHDiag()` on an `ot.QRMethod` object).

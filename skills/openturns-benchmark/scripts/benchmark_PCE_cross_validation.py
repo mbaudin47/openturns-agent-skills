@@ -23,6 +23,8 @@ import time
 import openturns.experimental as otexp
 from openturns.usecases import ishigami_function
 
+HAS_ANALYTICAL_CV = hasattr(otexp, "FunctionalChaosValidation")
+
 
 # %%
 def performClassicalCrossValidation(
@@ -190,6 +192,10 @@ def performAnalyticalCrossValidation(
     chaosAlgo.run()
     chaosResult = chaosAlgo.getResult()
     # Cross-validation
+    if not HAS_ANALYTICAL_CV:
+        raise NotImplementedError(
+            "otexp.FunctionalChaosValidation is only available in OpenTURNS >= 1.28."
+        )
     validation = otexp.FunctionalChaosValidation(chaosResult, splitter)
     mse_score = validation.computeMeanSquaredError()
     return mse_score
@@ -256,12 +262,14 @@ def performAnalyticalLOOCV(sampleSize, basisDimension=10, sparse=False):
 sampleSize = 500
 mse_score = performClassicalLOOCV(sampleSize)
 print(f"Classical LOO CV = {mse_score}")
-mse_score = performAnalyticalLOOCV(sampleSize)
-print(f"Classical LOO CV = {mse_score}")
+if HAS_ANALYTICAL_CV:
+    mse_score = performAnalyticalLOOCV(sampleSize)
+    print(f"Analytical LOO CV = {mse_score}")
 mse_score = performClassicalKFoldCV(sampleSize)
 print(f"Classical KFold CV = {mse_score}")
-mse_score = performAnalyticalKFoldCV(sampleSize)
-print(f"Analytical KFold CV = {mse_score}")
+if HAS_ANALYTICAL_CV:
+    mse_score = performAnalyticalKFoldCV(sampleSize)
+    print(f"Analytical KFold CV = {mse_score}")
 
 
 # %%
@@ -413,16 +421,19 @@ def performBenchmark(
     )
 
     # Analytical LOO
-    print("Analytical LOO")
-    liste_samplesize_analytical_loo, elapse_time_analytical_loo = (
-        benchmark_CV(
-            is_analytical_cv=True,
-            is_kfold=False,
-            sample_size_init=sample_size_init,
-            maximum_time=maximum_time,
-            verbose=True,
+    if HAS_ANALYTICAL_CV:
+        print("Analytical LOO")
+        liste_samplesize_analytical_loo, elapse_time_analytical_loo = (
+            benchmark_CV(
+                is_analytical_cv=True,
+                is_kfold=False,
+                sample_size_init=sample_size_init,
+                maximum_time=maximum_time,
+                verbose=True,
+            )
         )
-    )
+    else:
+        liste_samplesize_analytical_loo, elapse_time_analytical_loo = [], []
 
     # Classical K-Fold
     im = ishigami_function.IshigamiModel()
@@ -435,15 +446,18 @@ def performBenchmark(
     )
 
     # Analytical K-Fold
-    print("Analytical K-Fold")
-    liste_samplesize_analytical_kfold, elapse_time_analytical_kfold = (
-        benchmark_CV(
-            is_analytical_cv=True,
-            sample_size_init=sample_size_init,
-            maximum_time=maximum_time,
-            verbose=True,
+    if HAS_ANALYTICAL_CV:
+        print("Analytical K-Fold")
+        liste_samplesize_analytical_kfold, elapse_time_analytical_kfold = (
+            benchmark_CV(
+                is_analytical_cv=True,
+                sample_size_init=sample_size_init,
+                maximum_time=maximum_time,
+                verbose=True,
+            )
         )
-    )
+    else:
+        liste_samplesize_analytical_kfold, elapse_time_analytical_kfold = [], []
 
     # Plot
     graph = ot.Graph(
@@ -464,15 +478,16 @@ def performBenchmark(
         legend="Classical LOO",
     )
     graph.add(cloud)
-    cloud = plotCloudAndCurve(
-        liste_samplesize_analytical_loo,
-        elapse_time_analytical_loo,
-        color=palette[1],
-        point_style="^",
-        line_style="dotdash",
-        legend="Analytical LOO",
-    )
-    graph.add(cloud)
+    if len(liste_samplesize_analytical_loo) > 0:
+        cloud = plotCloudAndCurve(
+            liste_samplesize_analytical_loo,
+            elapse_time_analytical_loo,
+            color=palette[1],
+            point_style="^",
+            line_style="dotdash",
+            legend="Analytical LOO",
+        )
+        graph.add(cloud)
     cloud = plotCloudAndCurve(
         liste_samplesize_classical_kfold,
         elapse_time_classical_kfold,
@@ -482,15 +497,16 @@ def performBenchmark(
         legend="Classical K-Fold",
     )
     graph.add(cloud)
-    cloud = plotCloudAndCurve(
-        liste_samplesize_analytical_kfold,
-        elapse_time_analytical_kfold,
-        color=palette[3],
-        point_style="v",
-        line_style="dashed",
-        legend="Analytical K-Fold",
-    )
-    graph.add(cloud)
+    if len(liste_samplesize_analytical_kfold) > 0:
+        cloud = plotCloudAndCurve(
+            liste_samplesize_analytical_kfold,
+            elapse_time_analytical_kfold,
+            color=palette[3],
+            point_style="v",
+            line_style="dashed",
+            legend="Analytical K-Fold",
+        )
+        graph.add(cloud)
     graph.setLegendPosition("upper left")
     graph.setLegendCorner((1.0, 1.0))
     graph.setLogScale(ot.GraphImplementation.LOGXY)
