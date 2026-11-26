@@ -1,6 +1,6 @@
 ---
 name: openturns-graphics
-description: Create, customize, and export OpenTURNS graphics including Curve, Cloud, Polygon.FillBetween, 2D contour plots and level lines (Contour, drawPDF, filled, hatches, log/rank norm, colorbar), pairs plots (DrawPairs, DrawPairsMarginals, DrawPairsXY), parallel coordinates, GridLayout, and View customization. Use when creating OpenTURNS plots, styling contour levels, resolving subplot overlaps with subplots_adjust, or saving figures.
+description: Create, customize, and export OpenTURNS graphics including Curve, Cloud, Polygon.FillBetween, 2D contour plots and level lines (Contour, drawPDF, drawCrossCuts, filled, hatches, log/rank norm, colorbar), pairs plots (DrawPairs, DrawPairsMarginals, DrawPairsXY), parallel coordinates, GridLayout, and View customization. Use when creating OpenTURNS plots, styling contour levels, resolving subplot overlaps with subplots_adjust, or saving figures.
 ---
 
 # OpenTURNS Graphics and Contour Guide
@@ -19,6 +19,7 @@ Comprehensive guide for creating, styling, arranging, and exporting plots in Ope
 | **Contour from function** | `f.draw([xmin, ymin], [xmax, ymax], [nx, ny])` |
 | **Contour from distribution** | `dist.drawPDF([xmin, ymin], [xmax, ymax])` |
 | **Contour from grid data** | `ot.Contour(x, y, data)` |
+| **Cross-cuts grid (2D & 1D)** | `f.drawCrossCuts(center, xmin, xmax, pts, with_1d, is_filled, vmin, vmax)` *(returns `ot.GridLayout`)* |
 | **Access Contour methods** | `contour = graph.getDrawable(0).getImplementation()` |
 | **Filled contour** | `contour.setIsFilled(True)` |
 | **Level lines (iso-curves)** | `contour.setIsFilled(False); contour.setDrawLabels(True)` |
@@ -228,6 +229,90 @@ view = otv.View(graph, contour_kw={"colors": palette, "cmap": None})
 ```python
 contour.setAlpha(0.35)
 contour.setHatches(["/", "\\", "/\\", "+", "*"])
+```
+
+---
+
+### Multidimensional Function Cross-Cuts (`Function.drawCrossCuts`)
+
+The `drawCrossCuts()` method provides a qualitative sensitivity analysis of a scalar-output multidimensional function $f: \mathbb{R}^n \rightarrow \mathbb{R}$ by drawing an `ot.GridLayout` of 2D contour panels (and optionally 1D curves along the diagonal).
+
+Around a central point $\boldsymbol{c} = (c_1, \dots, c_n)$ (typically the distribution mean or median), all variables are frozen except one or two:
+- **1D cuts** ($i = j$): plots $y = f(c_1, \dots, s, \dots, c_n)$ for $s \in [x_i^{min}, x_i^{max}]$ along the diagonal.
+- **2D cuts** ($i \neq j$): plots contour maps of $y = f(c_1, \dots, s, \dots, t, \dots, c_n)$ for $(s, t) \in [x_i^{min}, x_i^{max}] \times [x_j^{min}, x_j^{max}]$.
+- **Comparable color scale**: all 2D contour subplots share a unified range $[v_{min}, v_{max}]$ across the entire matrix.
+
+#### Method Parameters
+```python
+grid = f.drawCrossCuts(
+    centralPoint,           # list or Point of float (dimension n)
+    xMin,                   # lower bounds of inputs (dimension n)
+    xMax,                   # upper bounds of inputs (dimension n)
+    pointNumber,            # list or Indices of int (discretization per input)
+    withMonoDimensionalCuts,# bool: True to include 1D curves on diagonal, False for 2D only
+    isFilled,               # bool: True for filled contours, False for level lines
+    vMin, vMax              # float (optional): global min/max for the shared color scale
+)
+```
+
+#### Complete Workflow with Shared Colorbar and Clean Axes
+In higher dimensions ($n \ge 3$), configuring a unified colormap, setting figure dimensions, adding a single global colorbar, and hiding redundant interior tick labels produces publication-ready visual sensitivity plots:
+
+```python
+import openturns as ot
+import openturns.viewer as otv
+
+# 1. Define model and parameter bounds
+f = ot.SymbolicFunction(
+    ["x0", "x1", "x2"],
+    ["sin(x0) + 7.0 * sin(x1)^2 + 0.1 * x2^4 * sin(x0)"]
+)
+f.setInputDescription(["x0", "x1", "x2"])
+f.setOutputDescription(["y"])
+f.setName("Ishigami Cross Cuts")
+
+center = [0.0, 0.0, 0.0]
+lower_bound = [-3.14, -3.14, -3.14]
+upper_bound = [3.14, 3.14, 3.14]
+n_points = [20, 20, 20]
+
+# 2. Generate cross-cut grid (without 1D cuts, filled contours)
+grid = f.drawCrossCuts(
+    center,
+    lower_bound,
+    upper_bound,
+    n_points,
+    False,   # withMonoDimensionalCuts
+    True,    # isFilled
+    -10.0,   # vMin
+    18.0     # vMax
+)
+grid.setTitle("")
+
+# 3. Apply colormap and level count across all panels via View
+view = otv.View(grid, contour_kw={"cmap": "viridis", "levels": 20})
+
+fig = view.getFigure()
+axes = view.getAxes()
+fig.set_size_inches(10, 10)
+
+# 4. Add a single shared colorbar referencing the first 2D contour subview
+fig.colorbar(
+    view.getSubviews()[1][0].getContourSets()[0],
+    ax=axes[:-1, -1],
+    fraction=0.25,
+    pad=0.04
+)
+
+# 5. Hide redundant interior tick labels in the triangular grid
+for i in range(len(axes)):
+    for j in range(i + 1):
+        if i < len(axes) - 1:
+            axes[i][j].xaxis.set_ticklabels([])
+        if j > 0:
+            axes[i][j].yaxis.set_ticklabels([])
+
+fig.subplots_adjust(top=0.98, bottom=0.06, left=0.08, right=0.92)
 ```
 
 ---

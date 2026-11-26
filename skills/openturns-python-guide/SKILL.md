@@ -162,6 +162,7 @@ OpenTURNS includes native graphing capabilities using `ot.Graph` and `openturns.
   * From 2D Function: `graph = f.draw([xmin, ymin], [xmax, ymax], [nx, ny])`
   * From 2D Distribution: `graph = distribution.drawPDF([xmin, ymin], [xmax, ymax])`
   * From Grid Data: `contour = ot.Contour(x, y, data)`
+  * Multidimensional Cross Cuts: `grid = f.drawCrossCuts(center, xmin, xmax, pts, with_1d, is_filled, vmin, vmax)` (matrix of 2D/1D cuts with shared color scale across all pairs)
 * **Extraction:** Retrieve contour drawable via `graph.getDrawable(0)` and access methods through `drawable.getImplementation()`.
 * **Filled Contours & Iso-lines:**
   * Toggle fill: `contour_impl.setIsFilled(True)` vs `False` (level lines)

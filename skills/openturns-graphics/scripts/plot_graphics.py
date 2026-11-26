@@ -201,10 +201,65 @@ def demo_fill_between():
 
 
 # %%
+def demo_draw_cross_cuts():
+    """Demonstrate Function.drawCrossCuts for qualitative sensitivity analysis with shared colorbar."""
+    f = ot.SymbolicFunction(
+        ["x0", "x1", "x2"],
+        ["sin(x0) + 7.0 * sin(x1)^2 + 0.1 * x2^4 * sin(x0)"]
+    )
+    f.setInputDescription(["x0", "x1", "x2"])
+    f.setOutputDescription(["y"])
+    f.setName("Ishigami")
+
+    center = [0.0, 0.0, 0.0]
+    lower_bound = [-3.14, -3.14, -3.14]
+    upper_bound = [3.14, 3.14, 3.14]
+    n_points = [15, 15, 15]
+
+    grid = f.drawCrossCuts(
+        center,
+        lower_bound,
+        upper_bound,
+        n_points,
+        False,  # withMonoDimensionalCuts
+        True,   # isFilled
+        -10.0,  # vMin
+        18.0,   # vMax
+    )
+    grid.setTitle("Ishigami Cross Cuts")
+
+    view = otv.View(grid, contour_kw={"cmap": "viridis", "levels": 15})
+    fig = view.getFigure()
+    axes = view.getAxes()
+    fig.set_size_inches(8.0, 8.0)
+
+    # Add shared colorbar referencing first 2D contour subview
+    fig.colorbar(
+        view.getSubviews()[1][0].getContourSets()[0],
+        ax=axes[:-1, -1],
+        fraction=0.25,
+        pad=0.04,
+    )
+
+    # Clean redundant interior tick labels in triangular matrix
+    for i in range(len(axes)):
+        for j in range(i + 1):
+            if i < len(axes) - 1:
+                axes[i][j].xaxis.set_ticklabels([])
+            if j > 0:
+                axes[i][j].yaxis.set_ticklabels([])
+
+    fig.subplots_adjust(top=0.95, bottom=0.08, left=0.1, right=0.9)
+    fig.savefig("demo_cross_cuts.png", bbox_inches="tight")
+    view.close()
+
+
+# %%
 if __name__ == "__main__":
     demo_curve_and_cloud()
     demo_contour_plots()
     demo_fill_between()
+    demo_draw_cross_cuts()
     demo_visual_tests()
     demo_grid_layout_with_spacing()
     print("All OpenTURNS graphics demos executed and saved successfully.")
