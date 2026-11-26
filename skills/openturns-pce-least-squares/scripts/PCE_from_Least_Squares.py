@@ -33,12 +33,12 @@ import openturns as ot
 # %%
 distributionE = ot.Beta(0.9, 3.5, 65.0e9, 75.0e9)
 distributionE.setDescription(["E"])
-parametersF = ot.LogNormalMuSigma(300.0, 30.0, 0.0)  # Paramétrage par les moments
+parametersF = ot.LogNormalMuSigma(300.0, 30.0, 0.0)  # Parameterized by moments
 distributionF = ot.ParametrizedDistribution(parametersF)
 distributionF.setDescription(["F"])
-distributionL = ot.Uniform(2.50, 2.60)  # En mètres
+distributionL = ot.Uniform(2.50, 2.60)  # In meters
 distributionL.setDescription(["L"])
-distributionI = ot.Beta(2.5, 4.0, 1.3e-7, 1.7e-7)  # En m⁴  # in cm^4
+distributionI = ot.Beta(2.5, 4.0, 1.3e-7, 1.7e-7)  # In m^4
 distributionI.setDescription(["I"])
 
 inputDistribution = ot.JointDistribution(

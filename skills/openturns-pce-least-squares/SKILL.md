@@ -1,6 +1,7 @@
-
+---
 name: openturns-pce-least-squares
 description: Generates or refactors custom OpenTURNS Python code to construct Polynomial Chaos Expansions (PCE) using direct least-squares estimation (LeastSquaresMethod) without relying on FunctionalChaosAlgorithm. Use when explicit control over the basis construction, design matrix, or low-level coefficient fitting is required, or when wrapping the results back into a FunctionalChaosResult object.
+---
 
 # OpenTURNS Polynomial Chaos Expansion via Least-Squares
 
@@ -36,12 +37,12 @@ import openturns as ot
 
 distributionE = ot.Beta(0.9, 3.5, 65.0e9, 75.0e9)
 distributionE.setDescription(["E"])
-parametersF = ot.LogNormalMuSigma(300.0, 30.0, 0.0)  # Paramétrage par les moments
+parametersF = ot.LogNormalMuSigma(300.0, 30.0, 0.0)  # Parameterized by moments
 distributionF = ot.ParametrizedDistribution(parametersF)
 distributionF.setDescription(["F"])
-distributionL = ot.Uniform(2.50, 2.60)  # En mètres
+distributionL = ot.Uniform(2.50, 2.60)  # In meters
 distributionL.setDescription(["L"])
-distributionI = ot.Beta(2.5, 4.0, 1.3e-7, 1.7e-7)  # En m⁴  # in cm^4
+distributionI = ot.Beta(2.5, 4.0, 1.3e-7, 1.7e-7)  # In m^4
 distributionI.setDescription(["I"])
 
 inputDistribution = ot.JointDistribution(
